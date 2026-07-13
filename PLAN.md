@@ -1,6 +1,3 @@
-
-
-```md
 # AI Gateway Netlify - Implementation Plan
 
 ## 1. Obiettivo
@@ -933,7 +930,7 @@ Uso previsto negli altri progetti:
 import { createAiGatewayClient } from "@personal/ai-gateway-client";
 
 const ai = createAiGatewayClient({
-  baseUrl: "https://my-ai-gateway.netlify.app/api",
+  baseUrl: "https://ai-gateway-dq.netlify.app/api",
   apiKey: import.meta.env.VITE_AI_GATEWAY_KEY
 });
 

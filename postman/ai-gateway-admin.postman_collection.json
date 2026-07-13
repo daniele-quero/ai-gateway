@@ -1,0 +1,251 @@
+{
+  "info": {
+    "_postman_id": "b41a0dae-cbe7-4f63-9ca5-6f52c2f4f264",
+    "name": "AI Gateway - Admin Only",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{ADMIN_KEY}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Create App Key",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 201', function () {",
+              "  pm.response.to.have.status(201);",
+              "});",
+              "const body = pm.response.json();",
+              "if (body.keyId) pm.environment.set('APP_KEY_ID', body.keyId);",
+              "if (body.apiKey) pm.environment.set('LAST_CREATED_APP_KEY', body.apiKey);",
+              "if (body.appId) pm.environment.set('APP_ID', body.appId);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"appId\": \"{{APP_ID}}\",\n  \"label\": \"{{APP_LABEL}}\",\n  \"allowedOrigins\": [\n    \"{{ALLOWED_ORIGIN_1}}\",\n    \"{{ALLOWED_ORIGIN_2}}\"\n  ],\n  \"limits\": {\n    \"requestsPerMinute\": {{RPM}},\n    \"requestsPerDay\": {{RPD}}\n  },\n  \"enabledCapabilities\": {{ENABLED_CAPABILITIES}}\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{BASE_URL}}/keys",
+          "host": [
+            "{{BASE_URL}}"
+          ],
+          "path": [
+            "keys"
+          ]
+        },
+        "description": "Creates a new app key. Stores APP_KEY_ID and LAST_CREATED_APP_KEY in the active environment."
+      }
+    },
+    {
+      "name": "List Keys",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{BASE_URL}}/keys",
+          "host": [
+            "{{BASE_URL}}"
+          ],
+          "path": [
+            "keys"
+          ]
+        },
+        "description": "Lists key metadata without returning key plaintext values."
+      }
+    },
+    {
+      "name": "Revoke Key",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"keyId\": \"{{APP_KEY_ID}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{BASE_URL}}/keys/revoke",
+          "host": [
+            "{{BASE_URL}}"
+          ],
+          "path": [
+            "keys",
+            "revoke"
+          ]
+        },
+        "description": "Revokes a key by APP_KEY_ID."
+      }
+    },
+    {
+      "name": "Rotate Key",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 201', function () {",
+              "  pm.response.to.have.status(201);",
+              "});",
+              "const body = pm.response.json();",
+              "if (body.keyId) pm.environment.set('APP_KEY_ID', body.keyId);",
+              "if (body.apiKey) pm.environment.set('LAST_CREATED_APP_KEY', body.apiKey);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"keyId\": \"{{APP_KEY_ID}}\",\n  \"revokeOldImmediately\": {{REVOKE_OLD_IMMEDIATELY}}\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{BASE_URL}}/keys/rotate",
+          "host": [
+            "{{BASE_URL}}"
+          ],
+          "path": [
+            "keys",
+            "rotate"
+          ]
+        },
+        "description": "Rotates APP_KEY_ID and updates APP_KEY_ID with the newly created key id."
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "BASE_URL",
+      "value": "https://your-site.netlify.app/api",
+      "type": "string"
+    },
+    {
+      "key": "ADMIN_KEY",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "APP_ID",
+      "value": "ktc",
+      "type": "string"
+    },
+    {
+      "key": "APP_LABEL",
+      "value": "KTC consumer",
+      "type": "string"
+    },
+    {
+      "key": "ALLOWED_ORIGIN_1",
+      "value": "http://localhost:5173",
+      "type": "string"
+    },
+    {
+      "key": "ALLOWED_ORIGIN_2",
+      "value": "https://ktc.example.com",
+      "type": "string"
+    },
+    {
+      "key": "RPM",
+      "value": "10",
+      "type": "string"
+    },
+    {
+      "key": "RPD",
+      "value": "500",
+      "type": "string"
+    },
+    {
+      "key": "ENABLED_CAPABILITIES",
+      "value": "[\"chat\",\"complete\"]",
+      "type": "string"
+    },
+    {
+      "key": "APP_KEY_ID",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "REVOKE_OLD_IMMEDIATELY",
+      "value": "false",
+      "type": "string"
+    },
+    {
+      "key": "LAST_CREATED_APP_KEY",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

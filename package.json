@@ -1,0 +1,40 @@
+{
+  "name": "@personal/ai-gateway",
+  "version": "0.1.0",
+  "description": "Reusable AI Gateway deployable on Netlify Functions",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "exports": {
+    "./client": {
+      "types": "./dist/client/index.d.ts",
+      "import": "./dist/client/index.js"
+    }
+  },
+  "files": [
+    "dist/client"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "build:client": "tsc -p tsconfig.client.json",
+    "prepare": "npm run build:client",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint . --ext .ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "dev": "netlify dev --offline"
+  },
+  "devDependencies": {
+    "@netlify/functions": "^2.8.2",
+    "@types/node": "^20.14.0",
+    "@typescript-eslint/eslint-plugin": "^7.13.0",
+    "@typescript-eslint/parser": "^7.13.0",
+    "eslint": "^8.57.0",
+    "typescript": "^5.5.0",
+    "vitest": "^1.6.0"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}

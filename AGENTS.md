@@ -13,6 +13,7 @@
 - Backend: Netlify Functions under `netlify/functions`.
 - Storage: Netlify Blobs for v1 app API key records; keep Upstash Redis behind an interface for production-grade rate limits.
 - Client: exportable ESM TypeScript client under `src/client`.
+ - Runtime baseline: Node.js 20+ and npm 10+. Note: Netlify's build environment uses Node.js v22 and may set a specific TypeScript compiler option during CI builds. If you see compilation or runtime mismatches between local and Netlify builds, reproduce the build with Node v22 locally and align tsconfig.json / tsc options with Netlify's environment.
 
 ## Architecture Rules
 
@@ -61,3 +62,16 @@
 - Add `README.md`, `.env.example`, and `docs/openapi.yml` as the scaffold matures.
 - Keep docs focused on setup, environment variables, Netlify deploy, app key management, client usage, provider/model extension, security notes, and known limits.
 - Link back to [PLAN.md](PLAN.md) for the full implementation plan until dedicated docs exist.
+
+## Push policy for `main` / `master`
+
+- Purpose: prevent automatic Netlify deploys that consume credits.
+
+- Operational rules:
+	- Commits and pushes to branches other than `main` and `master`: allowed.
+	- Commits to `main` and `master`: allowed.
+	- Pushes to `main` and `master`: MUST NOT be performed automatically. Any agent, script, or workflow that intends to push to `main` or `master` must request explicit human confirmation each time before performing the push (use an ask/confirmation tool and obtain approval).
+
+- Reason: pushes to `main`/`master` trigger Netlify deploys which may consume credits; therefore pushes must only occur after human approval.
+
+- Recommendation: for intentional deployments prefer opening a Pull Request or performing a manual push from a developer's environment after explicit confirmation.
