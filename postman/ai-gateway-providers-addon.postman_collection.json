@@ -1,0 +1,68 @@
+{
+  "info": {
+    "_postman_id": "e4f663ce-96f2-4b1e-8a4f-e7f8b9aa7656",
+    "name": "AI Gateway - Providers Add-on",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get Providers and Models",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "const body = pm.response.json();",
+              "pm.test('providers array exists', function () {",
+              "  pm.expect(Array.isArray(body.providers)).to.eql(true);",
+              "});",
+              "pm.test('models array exists', function () {",
+              "  pm.expect(Array.isArray(body.models)).to.eql(true);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{APP_KEY}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{BASE_URL}}/providers",
+          "host": [
+            "{{BASE_URL}}"
+          ],
+          "path": [
+            "providers"
+          ]
+        },
+        "description": "Requires an app key with 'models' capability."
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "BASE_URL",
+      "value": "https://your-site.netlify.app/api",
+      "type": "string"
+    },
+    {
+      "key": "APP_KEY",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

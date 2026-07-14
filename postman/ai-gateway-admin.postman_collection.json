@@ -26,10 +26,17 @@
               "pm.test('status is 201', function () {",
               "  pm.response.to.have.status(201);",
               "});",
-              "const body = pm.response.json();",
-              "if (body.keyId) pm.environment.set('APP_KEY_ID', body.keyId);",
-              "if (body.apiKey) pm.environment.set('LAST_CREATED_APP_KEY', body.apiKey);",
-              "if (body.appId) pm.environment.set('APP_ID', body.appId);"
+              "let body = {};",
+              "try { body = pm.response.json(); } catch (e) { console.error('Response is not valid JSON', e); }",
+              "const writeVar = (key, value) => {",
+              "  if (value === undefined || value === null || value === '') return;",
+              "  try { pm.environment.set(key, value); } catch (_) {}",
+              "  pm.collectionVariables.set(key, value);",
+              "};",
+              "writeVar('APP_KEY_ID', body.keyId);",
+              "writeVar('LAST_CREATED_APP_KEY', body.apiKey);",
+              "writeVar('APP_ID', body.appId);",
+              "console.log('Saved variables from Create App Key', { keyId: body.keyId, appId: body.appId });"
             ]
           }
         }
@@ -148,9 +155,16 @@
               "pm.test('status is 201', function () {",
               "  pm.response.to.have.status(201);",
               "});",
-              "const body = pm.response.json();",
-              "if (body.keyId) pm.environment.set('APP_KEY_ID', body.keyId);",
-              "if (body.apiKey) pm.environment.set('LAST_CREATED_APP_KEY', body.apiKey);"
+              "let body = {};",
+              "try { body = pm.response.json(); } catch (e) { console.error('Response is not valid JSON', e); }",
+              "const writeVar = (key, value) => {",
+              "  if (value === undefined || value === null || value === '') return;",
+              "  try { pm.environment.set(key, value); } catch (_) {}",
+              "  pm.collectionVariables.set(key, value);",
+              "};",
+              "writeVar('APP_KEY_ID', body.keyId);",
+              "writeVar('LAST_CREATED_APP_KEY', body.apiKey);",
+              "console.log('Saved variables from Rotate Key', { keyId: body.keyId });"
             ]
           }
         }
