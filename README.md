@@ -12,7 +12,7 @@ See [PLAN.md](PLAN.md) for the full architecture and rationale.
 - Public, API-key–protected endpoints: `chat`, `complete`, `vision`, `embeddings`, `providers`, `model/<alias>`.
 - Admin-protected app key management: create, list, revoke, rotate.
 - App API keys stored **only as peppered hashes**; plaintext shown once at creation.
-- Provider adapters behind a shared contract: GitHub Models, Google Gemini, Groq, plus a deterministic `template` provider for tests.
+- Provider adapters behind a shared contract: Google Gemini, Groq, OpenRouter Free, plus a deterministic `template` provider for tests.
 - Centralized model registry with routing aliases: `auto:fast`, `auto:balanced`, `auto:quality`, `auto:reasoning`, `auto:vision`, `auto:embedding`.
 - SSE streaming with `meta` / `delta` / `done` / `error` events and provider fallback before the first token.
 - Per-app CORS allowlists and per-app rate limits.
@@ -44,9 +44,9 @@ See [.env.example](.env.example). Summary:
 | --- | --- |
 | `AI_GATEWAY_ADMIN_KEY` | Protects key-management endpoints |
 | `AI_GATEWAY_KEY_PEPPER` | Long random secret used to hash app API keys |
-| `GITHUB_MODELS_TOKEN` | GitHub Models token (minimal permissions) |
 | `GOOGLE_API_KEY` | Google Gemini API key |
 | `GROQ_API_KEY` | Groq API key |
+| `OPENROUTER_FREE_API_KEY` | OpenRouter API key for free-tier models |
 | `OPENAI_API_KEY` | Reserved for an OpenAI adapter |
 | `NETLIFY_BLOBS_CONTEXT` | Netlify Blobs context |
 | `UPSTASH_REDIS_REST_URL` / `_TOKEN` | Optional production rate-limit store |
@@ -167,6 +167,8 @@ await ai.vision({
 
 Add an entry to `MODEL_REGISTRY` in [models/registry.ts](netlify/functions/lib/models/registry.ts) with its `provider`, provider-native `model`, `capabilities` and `defaultMaxOutputTokens`. Optionally reference it from a routing alias in `ROUTES`.
 
+OpenRouter Free aliases are prefixed with `openrouter-` and omit `free`, for example `openrouter-gpt-oss-20b`. Their provider-native IDs retain `:free` so requests stay on the free tier. The registry includes the requested chat, vision and embedding models; inspect `/api/providers` to discover the full current alias list.
+
 ## Security notes
 
 - Provider secrets live only in Netlify environment variables and are never returned or logged.
@@ -179,6 +181,7 @@ Add an entry to `MODEL_REGISTRY` in [models/registry.ts](netlify/functions/lib/m
 
 - Rate limiting uses an in-memory store by default (per-instance). Use a shared store (e.g. Upstash) in production.
 - Exact production model lists are a starting template and expected to evolve.
+- Text-to-speech and reranking endpoints are not part of the v1 gateway contract. Therefore Fish Audio S2.1 Pro Free and Llama Nemotron Rerank VL 1B V2 are not exposed until those endpoint types are implemented.
 - No dashboard, billing, multi-tenant public access, WebSocket, fine-tuning or vector storage in v1.
 
 ## Scripts

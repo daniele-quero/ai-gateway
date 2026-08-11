@@ -24,9 +24,9 @@ export interface GatewayConfig {
   adminKey: string | undefined;
   keyPepper: string | undefined;
   providers: {
-    githubModelsToken: string | undefined;
     googleApiKey: string | undefined;
     groqApiKey: string | undefined;
+    openRouterApiKey: string | undefined;
     openaiApiKey: string | undefined;
   };
   timeouts: {
@@ -40,9 +40,9 @@ export function getConfig(): GatewayConfig {
     adminKey: readEnv("AI_GATEWAY_ADMIN_KEY"),
     keyPepper: readEnv("AI_GATEWAY_KEY_PEPPER"),
     providers: {
-      githubModelsToken: readEnv("GITHUB_MODELS_TOKEN"),
       googleApiKey: readEnv("GOOGLE_API_KEY"),
       groqApiKey: readEnv("GROQ_API_KEY"),
+      openRouterApiKey: readEnv("OPENROUTER_FREE_API_KEY"),
       openaiApiKey: readEnv("OPENAI_API_KEY"),
     },
     timeouts: {

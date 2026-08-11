@@ -12,15 +12,15 @@ import {
   type ProviderId,
 } from "./models/registry.js";
 import { GeminiClient } from "./providers/geminiClient.js";
-import { GithubModelsClient } from "./providers/githubModelsClient.js";
 import { GroqClient } from "./providers/groqClient.js";
+import { OpenRouterFreeClient } from "./providers/openRouterFreeClient.js";
 import { TemplateProviderClient } from "./providers/templateProviderClient.js";
 import type { ProviderAdapter, ProviderCapability } from "./providers/types.js";
 
 const ADAPTERS: Record<ProviderId, ProviderAdapter> = {
-  github: new GithubModelsClient(),
   google: new GeminiClient(),
   groq: new GroqClient(),
+  "openrouter-free": new OpenRouterFreeClient(),
   template: new TemplateProviderClient(),
 };
 

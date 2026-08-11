@@ -38,7 +38,7 @@ Il progetto deve essere una base estendibile: per iniziare implementare template
 App personale
   -> AI Gateway Netlify Function
     -> Provider adapter
-      -> GitHub Models / Google Gemini / Groq / altri provider futuri
+      -> Google Gemini / Groq / altri provider futuri
 ```
 
 Evitare questo schema quando possibile:
@@ -88,7 +88,6 @@ ai-gateway/
 
         providers/
           types.ts
-          githubModelsClient.ts
           geminiClient.ts
           groqClient.ts
           templateProviderClient.ts
@@ -147,7 +146,6 @@ Il progetto puo non avere frontend reale. Se serve solo gateway, `dist` puo cont
 ### Provider secrets
 
 ```txt
-GITHUB_MODELS_TOKEN=...
 GOOGLE_API_KEY=...
 GROQ_API_KEY=...
 OPENAI_API_KEY=...
@@ -177,7 +175,6 @@ UPSTASH_REDIS_REST_TOKEN=...
 
 ### Regole
 
-- `GITHUB_MODELS_TOKEN` deve usare permessi minimi per GitHub Models.
 - Le API key provider non devono mai essere restituite dalle API.
 - Le app personali ricevono solo API key del gateway.
 - Le API key gateway devono essere salvate solo come hash, non in chiaro.
@@ -375,11 +372,6 @@ Response:
 {
   "providers": [
     {
-      "id": "github",
-      "label": "GitHub Models",
-      "available": true
-    },
-    {
       "id": "google",
       "label": "Google Gemini",
       "available": true
@@ -392,9 +384,9 @@ Response:
   ],
   "models": [
     {
-      "id": "github:gpt-4.1-mini",
-      "provider": "github",
-      "model": "openai/gpt-4.1-mini",
+      "id": "gemini-2-5-flash",
+      "provider": "google",
+      "model": "gemini-2.5-flash",
       "capabilities": ["chat", "streaming"]
     }
   ]
@@ -450,8 +442,8 @@ Fallback JSON quando streaming non disponibile o `stream: false`:
 
 ```json
 {
-  "provider": "github",
-  "model": "openai/gpt-4.1-mini",
+  "provider": "google",
+  "model": "gemini-2.5-flash",
   "text": "Risposta completa..."
 }
 ```
@@ -512,12 +504,6 @@ Il registry deve contenere alias configurabili:
 
 ```ts
 export const MODEL_REGISTRY = {
-  "github-gpt-4-1-mini": {
-    provider: "github",
-    model: "openai/gpt-4.1-mini",
-    capabilities: ["chat", "streaming"],
-    defaultMaxOutputTokens: 512
-  },
   "gemini-flash": {
     provider: "google",
     model: "gemini-2.0-flash",
@@ -625,8 +611,8 @@ Response:
 
 ```json
 {
-  "provider": "github",
-  "model": "openai/text-embedding-3-small",
+  "provider": "google",
+  "model": "gemini-embedding-001",
   "data": [
     {
       "index": 0,
@@ -636,7 +622,7 @@ Response:
 }
 ```
 
-Per ora implementare come template, pronto per GitHub Models o provider esterni.
+Per ora implementare come template, pronto per provider esterni.
 
 ---
 
@@ -709,7 +695,7 @@ Formato standard:
 
 ```txt
 event: meta
-data: {"provider":"github","model":"openai/gpt-4.1-mini"}
+data: {"provider":"google","model":"gemini-2.5-flash"}
 
 event: delta
 data: {"text":"..."}
@@ -756,30 +742,25 @@ export const ROUTES = {
   "auto:fast": [
     "groq-llama-70b",
     "gemini-flash",
-    "github-gpt-4-1-mini"
+    "gemini-flash"
   ],
   "auto:balanced": [
     "gemini-flash",
-    "github-gpt-4-1-mini",
+    "gemini-flash",
     "groq-llama-70b"
   ],
   "auto:quality": [
-    "github-gpt-4-1",
-    "github-gpt-5-mini",
+    "gemini-flash",
     "gemini-flash"
   ],
   "auto:reasoning": [
-    "github-o4-mini",
-    "github-deepseek-r1",
-    "github-phi-4-reasoning"
+    "gemini-flash"
   ],
   "auto:vision": [
-    "gemini-flash",
-    "github-gpt-4o",
-    "github-phi-4-multimodal"
+    "gemini-flash"
   ],
   "auto:embedding": [
-    "github-text-embedding-3-small"
+    "gemini-embedding"
   ]
 } as const;
 ```
@@ -788,42 +769,7 @@ Per ora usare template e commenti: i modelli esatti saranno indicati successivam
 
 ---
 
-## 18. GitHub Models Adapter
-
-Il client GitHub Models deve usare:
-
-```txt
-https://models.github.ai/inference/chat/completions
-```
-
-Auth:
-
-```http
-Authorization: Bearer <GITHUB_MODELS_TOKEN>
-```
-
-Payload chat:
-
-```json
-{
-  "model": "openai/gpt-4.1-mini",
-  "messages": [
-    {
-      "role": "user",
-      "content": "Hello"
-    }
-  ],
-  "stream": true
-}
-```
-
-Il modello deve essere passato dal registry.
-
-Per embeddings usare endpoint GitHub Models embeddings quando disponibile.
-
----
-
-## 19. Google Gemini Adapter
+## 18. Google Gemini Adapter
 
 Usare `GOOGLE_API_KEY`.
 
@@ -1112,7 +1058,6 @@ AI_GATEWAY_ADMIN_KEY=change-me
 AI_GATEWAY_KEY_PEPPER=change-me-long-random-string
 
 # Providers
-GITHUB_MODELS_TOKEN=
 GOOGLE_API_KEY=
 GROQ_API_KEY=
 OPENAI_API_KEY=
@@ -1136,7 +1081,7 @@ Il progetto e completo quando:
 - esistono endpoint `chat`, `complete`, `vision`, `embeddings`, `providers`, `model`;
 - lo streaming SSE funziona per almeno un provider template o mock;
 - provider registry e model registry sono configurabili;
-- GitHub Models, Gemini e Groq hanno adapter o template adapter pronti;
+- Gemini e Groq hanno adapter o template adapter pronti;
 - il client TypeScript esportabile consuma almeno `complete`, `chatStream` e `vision`;
 - test, lint e build passano;
 - documentazione e .env.example sono presenti.
@@ -1152,8 +1097,7 @@ Implementare in questo ordine:
 3. key management API;
 4. provider/model registry;
 5. mock provider con streaming SSE;
-6. GitHub Models adapter;
-7. Gemini/Groq adapter template;
+6. Gemini/Groq adapter template;
 8. endpoint `chat` e `complete`;
 9. endpoint `vision` template;
 10. endpoint `embeddings` template;

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { TemplateProviderClient } from "../netlify/functions/lib/providers/templateProviderClient.js";
 import { resolveModel } from "../netlify/functions/lib/providerRegistry.js";
+import { resolveCandidates } from "../netlify/functions/lib/models/registry.js";
 import { runChat, runChatStream } from "../netlify/functions/lib/chatService.js";
 import { sseResponse, type StreamSource } from "../netlify/functions/lib/sse.js";
 import { isOriginAllowed, corsHeaders } from "../netlify/functions/lib/cors.js";
@@ -52,6 +53,45 @@ describe("resolveModel", () => {
   it("resolves a concrete template alias", () => {
     const resolved = resolveModel("template-model", "chat");
     expect(resolved[0]?.adapter.id).toBe("template");
+  });
+
+  it("registers OpenRouter free aliases without free in their public name", () => {
+    const previousKey = process.env.OPENROUTER_FREE_API_KEY;
+    process.env.OPENROUTER_FREE_API_KEY = "test-key";
+
+    try {
+      const resolved = resolveModel("openrouter-gpt-oss-20b", "chat");
+      expect(resolved[0]?.adapter.id).toBe("openrouter-free");
+      expect(resolved[0]?.definition.model).toBe("openai/gpt-oss-20b:free");
+    } finally {
+      if (previousKey === undefined) {
+        delete process.env.OPENROUTER_FREE_API_KEY;
+      } else {
+        process.env.OPENROUTER_FREE_API_KEY = previousKey;
+      }
+    }
+  });
+
+  it("orders auto:balanced from higher to lower estimated general capability", () => {
+    expect(resolveCandidates("auto:balanced")).toEqual([
+      "openrouter-nemotron-3-ultra",
+      "openrouter-nemotron-3-super",
+      "gemini-2-5-flash",
+      "groq-llama-70b",
+      "openrouter-gemma-4-31b",
+      "openrouter-gemma-4-26b-a4b",
+      "openrouter-nemotron-3-5-lightning",
+      "openrouter-nemotron-3-nano-omni",
+      "openrouter-nemotron-3-nano-30b-a3b",
+      "openrouter-nemotron-nano-12b-v2-vl",
+      "openrouter-laguna-s-2-1",
+      "openrouter-gpt-oss-20b",
+      "openrouter-laguna-xs-2-1",
+      "openrouter-north-mini-code",
+      "openrouter-ling-3-0-tiny",
+      "openrouter-lfm-2-5-2-6b",
+      "openrouter-nemotron-nano-9b-v2",
+    ]);
   });
 
   it("throws MODEL_NOT_FOUND for unknown model", () => {

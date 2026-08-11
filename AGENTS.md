@@ -19,7 +19,7 @@
 
 - Browser apps should call the gateway directly with a gateway app API key.
 - Provider secrets stay server-side in Netlify environment variables only.
-- Use provider adapters behind a shared `ProviderAdapter` contract for GitHub Models, Gemini, Groq, and future providers.
+- Use provider adapters behind a shared `ProviderAdapter` contract for Gemini, Groq, and future providers.
 - Keep model aliases and routing centralized in the model registry. Preserve `auto:fast`, `auto:balanced`, `auto:quality`, `auto:reasoning`, `auto:vision`, and `auto:embedding`.
 - Prefer streaming SSE whenever a provider supports it. Use the standard events: `meta`, `delta`, `done`, and `error`.
 

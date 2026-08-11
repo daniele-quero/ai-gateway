@@ -1,6 +1,5 @@
 /**
- * Shared logic for OpenAI-compatible chat completion providers
- * (GitHub Models, Groq, and many others).
+ * Shared logic for OpenAI-compatible chat completion providers such as Groq.
  */
 
 import { GatewayError } from "../errors.js";

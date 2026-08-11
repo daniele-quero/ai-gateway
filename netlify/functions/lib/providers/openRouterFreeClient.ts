@@ -1,6 +1,6 @@
 /**
- * GitHub Models adapter (OpenAI-compatible inference endpoint).
- * Token: GITHUB_MODELS_TOKEN with minimal GitHub Models permissions.
+ * OpenRouter adapter for models available on the free tier.
+ * Token: OPENROUTER_FREE_API_KEY.
  */
 
 import { getConfig } from "../config.js";
@@ -19,15 +19,14 @@ import type {
   ProviderEmbeddingsRequest,
 } from "./types.js";
 
-const CHAT_ENDPOINT = "https://models.github.ai/inference/chat/completions";
-const EMBEDDINGS_ENDPOINT = "https://models.github.ai/inference/embeddings";
+const API_BASE = "https://openrouter.ai/api/v1";
 
-export class GithubModelsClient implements ProviderAdapter {
-  readonly id = "github";
-  readonly label = "GitHub Models";
+export class OpenRouterFreeClient implements ProviderAdapter {
+  readonly id = "openrouter-free";
+  readonly label = "OpenRouter Free";
 
   isAvailable(): boolean {
-    return Boolean(getConfig().providers.githubModelsToken);
+    return Boolean(getConfig().providers.openRouterApiKey);
   }
 
   supports(_model: string, capability: ProviderCapability): boolean {
@@ -35,11 +34,11 @@ export class GithubModelsClient implements ProviderAdapter {
   }
 
   private clientConfig(): OpenAiCompatibleConfig {
-    const token = getConfig().providers.githubModelsToken;
+    const token = getConfig().providers.openRouterApiKey;
     if (!token) {
-      throw new GatewayError("PROVIDER_UNAVAILABLE", "GitHub Models token is not configured");
+      throw new GatewayError("PROVIDER_UNAVAILABLE", "OpenRouter API key is not configured");
     }
-    return { providerId: this.id, endpoint: CHAT_ENDPOINT, token };
+    return { providerId: this.id, endpoint: `${API_BASE}/chat/completions`, token };
   }
 
   async chat(request: ProviderChatRequest): Promise<ProviderChatResponse> {
@@ -52,10 +51,7 @@ export class GithubModelsClient implements ProviderAdapter {
   }
 
   async embeddings(request: ProviderEmbeddingsRequest): Promise<number[][]> {
-    const token = getConfig().providers.githubModelsToken;
-    if (!token) {
-      throw new GatewayError("PROVIDER_UNAVAILABLE", "GitHub Models token is not configured");
-    }
-    return openAiEmbeddings(EMBEDDINGS_ENDPOINT, token, this.id, request.model, request.input, request.signal);
+    const config = this.clientConfig();
+    return openAiEmbeddings(`${API_BASE}/embeddings`, config.token, this.id, request.model, request.input, request.signal);
   }
 }
