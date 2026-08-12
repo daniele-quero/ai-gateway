@@ -72,25 +72,27 @@ describe("resolveModel", () => {
     }
   });
 
-  it("orders auto:balanced from higher to lower estimated general capability", () => {
+  it("orders auto:balanced from lower to higher expected latency", () => {
     expect(resolveCandidates("auto:balanced")).toEqual([
-      "openrouter-nemotron-3-ultra",
-      "openrouter-nemotron-3-super",
       "gemini-2-5-flash",
+      "gemini-2-5-flash-lite",
       "groq-llama-70b",
-      "openrouter-gemma-4-31b",
-      "openrouter-gemma-4-26b-a4b",
       "openrouter-nemotron-3-5-lightning",
-      "openrouter-nemotron-3-nano-omni",
+      "groq-compound-mini",
       "openrouter-nemotron-3-nano-30b-a3b",
-      "openrouter-nemotron-nano-12b-v2-vl",
-      "openrouter-laguna-s-2-1",
-      "openrouter-gpt-oss-20b",
-      "openrouter-laguna-xs-2-1",
-      "openrouter-north-mini-code",
       "openrouter-ling-3-0-tiny",
       "openrouter-lfm-2-5-2-6b",
       "openrouter-nemotron-nano-9b-v2",
+      "openrouter-laguna-xs-2-1",
+      "openrouter-north-mini-code",
+      "openrouter-laguna-s-2-1",
+      "openrouter-gpt-oss-20b",
+      "openrouter-nemotron-3-nano-omni",
+      "openrouter-nemotron-nano-12b-v2-vl",
+      "openrouter-gemma-4-26b-a4b",
+      "openrouter-gemma-4-31b",
+      "openrouter-nemotron-3-super",
+      "openrouter-nemotron-3-ultra",
     ]);
   });
 
