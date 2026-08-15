@@ -226,6 +226,10 @@ export type ModelAlias = keyof typeof MODEL_REGISTRY;
  * Abstract routing aliases. Each maps to an ordered list of concrete model
  * aliases; the first available one is used, the rest act as fallbacks.
  */
+const VISION_MODELS = (Object.keys(MODEL_REGISTRY) as ModelAlias[]).filter((alias) =>
+  MODEL_REGISTRY[alias].capabilities.includes("vision"),
+);
+
 export const ROUTES = {
   "auto:fast": ["groq-llama-70b", "gemini-2-5-flash-lite"],
   "auto:balanced": [
@@ -251,7 +255,7 @@ export const ROUTES = {
   ],
   "auto:quality": ["gemini-2-5-pro", "gemini-3-5-flash"],
   "auto:reasoning": ["gemini-2-5-pro", "gemini-3-5-flash"],
-  "auto:vision": ["gemini-2-5-flash", "groq-llama-4-scout"],
+  "auto:vision": VISION_MODELS,
   "auto:embedding": ["gemini-embedding"],
 } as const satisfies Record<string, readonly ModelAlias[]>;
 

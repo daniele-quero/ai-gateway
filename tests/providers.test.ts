@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { TemplateProviderClient } from "../netlify/functions/lib/providers/templateProviderClient.js";
 import { resolveModel } from "../netlify/functions/lib/providerRegistry.js";
-import { resolveCandidates } from "../netlify/functions/lib/models/registry.js";
+import { MODEL_REGISTRY, resolveCandidates } from "../netlify/functions/lib/models/registry.js";
 import { runChat, runChatStream } from "../netlify/functions/lib/chatService.js";
 import { sseResponse, type StreamSource } from "../netlify/functions/lib/sse.js";
 import { isOriginAllowed, corsHeaders } from "../netlify/functions/lib/cors.js";
@@ -94,6 +94,14 @@ describe("resolveModel", () => {
       "openrouter-north-mini-code",
       "openrouter-nemotron-3-ultra",
     ]);
+  });
+
+  it("includes every vision-capable model in auto:vision", () => {
+    const visionModels = Object.entries(MODEL_REGISTRY)
+      .filter(([, definition]) => definition.capabilities.includes("vision"))
+      .map(([alias]) => alias);
+
+    expect(new Set(resolveCandidates("auto:vision"))).toEqual(new Set(visionModels));
   });
 
   it("throws MODEL_NOT_FOUND for unknown model", () => {
