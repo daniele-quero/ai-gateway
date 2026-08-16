@@ -118,6 +118,11 @@ describe("resolveModel", () => {
     expect(ordered).not.toContain("gemini-3-1-flash-lite");
   });
 
+  it("excludes the content-safety model from the production routing chain", () => {
+    expect(resolveCandidates("auto:vision")).not.toContain("openrouter-nemotron-3-5-content-safety");
+    expect(resolveCandidates("auto:balanced")).not.toContain("openrouter-nemotron-3-5-content-safety");
+  });
+
   it("throws MODEL_NOT_FOUND for unknown model", () => {
     expect(() => resolveModel("does-not-exist", "chat")).toThrow(GatewayError);
   });

@@ -130,12 +130,6 @@ export const MODEL_REGISTRY = {
     capabilities: ["chat", "streaming"],
     defaultMaxOutputTokens: 512,
   },
-  "openrouter-nemotron-3-5-content-safety": {
-    provider: "openrouter-free",
-    model: "nvidia/nemotron-3.5-content-safety:free",
-    capabilities: ["chat", "streaming", "vision"],
-    defaultMaxOutputTokens: 512,
-  },
   "openrouter-nemotron-3-ultra": {
     provider: "openrouter-free",
     model: "nvidia/nemotron-3-ultra-550b-a55b:free",
@@ -227,7 +221,6 @@ const VISION_MODELS = [
   "groq-qwen-3-6-27b",
   "openrouter-gemma-4-31b",
   "openrouter-gemma-4-26b-a4b",
-  "openrouter-nemotron-3-5-content-safety",
   "openrouter-nemotron-nano-12b-v2-vl",
   "openrouter-nemotron-3-nano-omni",
 ] as const satisfies ModelAlias[];
