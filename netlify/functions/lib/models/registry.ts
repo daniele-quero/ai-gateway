@@ -17,19 +17,9 @@ export interface ModelDefinition {
 }
 
 export const MODEL_REGISTRY = {
-  // Google Gemini free-tier models (all multimodal: accept image input).
-  "gemini-3-5-flash": {
-    provider: "google",
-    model: "gemini-3.5-flash",
-    capabilities: ["chat", "streaming", "vision"],
-    defaultMaxOutputTokens: 512,
-  },
-  "gemini-3-1-flash-lite": {
-    provider: "google",
-    model: "gemini-3.1-flash-lite",
-    capabilities: ["chat", "streaming", "vision"],
-    defaultMaxOutputTokens: 512,
-  },
+  // Google Gemini models used by the gateway. Keep the registry aligned with
+  // the IDs that Gemini actually accepts; unsupported 3.x names will trigger
+  // 404s upstream.
   "gemini-2-5-flash": {
     provider: "google",
     model: "gemini-2.5-flash",
@@ -226,9 +216,21 @@ export type ModelAlias = keyof typeof MODEL_REGISTRY;
  * Abstract routing aliases. Each maps to an ordered list of concrete model
  * aliases; the first available one is used, the rest act as fallbacks.
  */
-const VISION_MODELS = (Object.keys(MODEL_REGISTRY) as ModelAlias[]).filter((alias) =>
-  MODEL_REGISTRY[alias].capabilities.includes("vision"),
-);
+const VISION_MODELS = [
+  // First three prioritize the best balance of quality and speed for vision tasks.
+  "gemini-2-5-pro",
+  "gemini-2-5-flash",
+  "gemini-2-5-flash-lite",
+  // Remaining candidates follow a speed-oriented fallback chain: Groq first,
+  // then the faster OpenRouter multimodal models, ending with slower alternatives.
+  "groq-llama-4-scout",
+  "groq-qwen-3-6-27b",
+  "openrouter-gemma-4-31b",
+  "openrouter-gemma-4-26b-a4b",
+  "openrouter-nemotron-3-5-content-safety",
+  "openrouter-nemotron-nano-12b-v2-vl",
+  "openrouter-nemotron-3-nano-omni",
+] as const satisfies ModelAlias[];
 
 export const ROUTES = {
   "auto:fast": ["groq-llama-70b", "gemini-2-5-flash-lite"],
@@ -253,8 +255,8 @@ export const ROUTES = {
     "openrouter-north-mini-code",
     "openrouter-nemotron-3-ultra",
   ],
-  "auto:quality": ["gemini-2-5-pro", "gemini-3-5-flash"],
-  "auto:reasoning": ["gemini-2-5-pro", "gemini-3-5-flash"],
+  "auto:quality": ["gemini-2-5-pro", "gemini-2-5-flash"],
+  "auto:reasoning": ["gemini-2-5-pro", "gemini-2-5-flash"],
   "auto:vision": VISION_MODELS,
   "auto:embedding": ["gemini-embedding"],
 } as const satisfies Record<string, readonly ModelAlias[]>;

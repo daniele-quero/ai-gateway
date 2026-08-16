@@ -44,6 +44,33 @@ describe("validateChatRequest", () => {
     expect(result.messages[0]?.content).toHaveLength(2);
   });
 
+  it("accepts the receipt-style vision payload used for regression testing", () => {
+    const result = validateChatRequest({
+      model: "auto:vision",
+      stream: false,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: "Extract the product and price from this receipt.",
+            },
+            {
+              type: "image_data",
+              mimeType: "image/png",
+              data: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAFfcYfAAAAAXNSR0IArA2HAAAAAElFTkSuQmCC",
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(result.model).toBe("auto:vision");
+    expect(result.stream).toBe(false);
+    expect(result.messages[0]?.content).toHaveLength(2);
+  });
+
   it("rejects a disallowed image mime type", () => {
     expect(() =>
       validateChatRequest({

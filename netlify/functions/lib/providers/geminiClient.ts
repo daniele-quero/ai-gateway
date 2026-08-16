@@ -89,6 +89,13 @@ function extractText(data: GeminiResponse): string {
   return parts.map((p) => p.text ?? "").join("");
 }
 
+const VALID_GEMINI_MODELS = new Set([
+  "gemini-2.5-flash",
+  "gemini-2.5-flash-lite",
+  "gemini-2.5-pro",
+  "gemini-embedding-001",
+]);
+
 export class GeminiClient implements ProviderAdapter {
   readonly id = "google";
   readonly label = "Google Gemini";
@@ -97,8 +104,11 @@ export class GeminiClient implements ProviderAdapter {
     return Boolean(getConfig().providers.googleApiKey);
   }
 
-  supports(_model: string, capability: ProviderCapability): boolean {
-    return capability === "chat" || capability === "streaming" || capability === "vision";
+  supports(model: string, capability: ProviderCapability): boolean {
+    if (!VALID_GEMINI_MODELS.has(model)) {
+      return false;
+    }
+    return capability === "chat" || capability === "streaming" || capability === "vision" || capability === "embeddings";
   }
 
   private token(): string {

@@ -104,6 +104,20 @@ describe("resolveModel", () => {
     expect(new Set(resolveCandidates("auto:vision"))).toEqual(new Set(visionModels));
   });
 
+  it("routes auto:vision with a balanced first three and a speed-oriented fallback order", () => {
+    const ordered = resolveCandidates("auto:vision");
+
+    expect(ordered.slice(0, 5)).toEqual([
+      "gemini-2-5-pro",
+      "gemini-2-5-flash",
+      "gemini-2-5-flash-lite",
+      "groq-llama-4-scout",
+      "groq-qwen-3-6-27b",
+    ]);
+    expect(ordered).not.toContain("gemini-3-5-flash");
+    expect(ordered).not.toContain("gemini-3-1-flash-lite");
+  });
+
   it("throws MODEL_NOT_FOUND for unknown model", () => {
     expect(() => resolveModel("does-not-exist", "chat")).toThrow(GatewayError);
   });
