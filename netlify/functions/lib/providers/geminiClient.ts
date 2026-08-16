@@ -90,8 +90,9 @@ function extractText(data: GeminiResponse): string {
 }
 
 const VALID_GEMINI_MODELS = new Set([
-  "gemini-2.0-flash",
-  "gemini-2.0-flash-lite",
+  "gemini-flash-latest",
+  "gemini-flash-lite-latest",
+  "gemini-pro-latest",
   "gemini-embedding-001",
 ]);
 

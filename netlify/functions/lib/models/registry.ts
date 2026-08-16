@@ -18,42 +18,59 @@ export interface ModelDefinition {
 
 export const MODEL_REGISTRY = {
   // Google Gemini models used by the gateway. Keep the registry aligned with
-  // the IDs that Gemini actually accepts; unsupported 3.x names will trigger
-  // 404s upstream.
+  // the IDs that Gemini actually accepts in the current API surface.
+  "gemini-flash-lite-latest": {
+    provider: "google",
+    model: "gemini-flash-lite-latest",
+    capabilities: ["chat", "streaming", "vision"],
+    defaultMaxOutputTokens: 512,
+  },
+  "gemini-flash-latest": {
+    provider: "google",
+    model: "gemini-flash-latest",
+    capabilities: ["chat", "streaming", "vision"],
+    defaultMaxOutputTokens: 512,
+  },
+  "gemini-pro-latest": {
+    provider: "google",
+    model: "gemini-pro-latest",
+    capabilities: ["chat", "streaming", "vision"],
+    defaultMaxOutputTokens: 512,
+  },
+  // Backward-compatible aliases kept for older clients using the older naming.
   "gemini-2-0-flash": {
     provider: "google",
-    model: "gemini-2.0-flash",
+    model: "gemini-flash-lite-latest",
     capabilities: ["chat", "streaming", "vision"],
     defaultMaxOutputTokens: 512,
   },
   "gemini-2-0-flash-lite": {
     provider: "google",
-    model: "gemini-2.0-flash-lite",
+    model: "gemini-flash-lite-latest",
     capabilities: ["chat", "streaming", "vision"],
     defaultMaxOutputTokens: 512,
   },
   "gemini-2-0-pro": {
     provider: "google",
-    model: "gemini-2.0-flash",
+    model: "gemini-flash-latest",
     capabilities: ["chat", "streaming", "vision"],
     defaultMaxOutputTokens: 512,
   },
-  // Backward-compatible aliases kept for older clients using the 2.5 naming.
   "gemini-2-5-flash": {
     provider: "google",
-    model: "gemini-2.0-flash",
+    model: "gemini-flash-latest",
     capabilities: ["chat", "streaming", "vision"],
     defaultMaxOutputTokens: 512,
   },
   "gemini-2-5-flash-lite": {
     provider: "google",
-    model: "gemini-2.0-flash-lite",
+    model: "gemini-flash-lite-latest",
     capabilities: ["chat", "streaming", "vision"],
     defaultMaxOutputTokens: 512,
   },
   "gemini-2-5-pro": {
     provider: "google",
-    model: "gemini-2.0-flash",
+    model: "gemini-flash-latest",
     capabilities: ["chat", "streaming", "vision"],
     defaultMaxOutputTokens: 512,
   },
@@ -230,11 +247,9 @@ export type ModelAlias = keyof typeof MODEL_REGISTRY;
  * aliases; the first available one is used, the rest act as fallbacks.
  */
 const VISION_MODELS = [
-  // Prefer the stable Gemini 2.0 family for production vision tasks; these are
-  // the model IDs Google accepts in the current API surface.
-  "gemini-2-0-pro",
-  "gemini-2-0-flash",
-  "gemini-2-0-flash-lite",
+  // The live Google model IDs that currently answer successfully in the API.
+  "gemini-flash-latest",
+  "gemini-flash-lite-latest",
   // Remaining candidates follow a speed-oriented fallback chain: Groq first,
   // then the faster OpenRouter multimodal models, ending with slower alternatives.
   "groq-llama-4-scout",
@@ -246,11 +261,11 @@ const VISION_MODELS = [
 ] as const satisfies ModelAlias[];
 
 export const ROUTES = {
-  "auto:fast": ["groq-llama-70b", "gemini-2-0-flash-lite"],
+  "auto:fast": ["groq-llama-70b", "gemini-flash-lite-latest"],
   "auto:balanced": [
-    "gemini-2-0-flash",
+    "gemini-flash-lite-latest",
     "groq-llama-70b",
-    "gemini-2-0-flash-lite",
+    "gemini-flash-latest",
     "groq-compound-mini",
     "openrouter-nemotron-3-5-lightning",
     "openrouter-gpt-oss-20b",
@@ -268,8 +283,8 @@ export const ROUTES = {
     "openrouter-north-mini-code",
     "openrouter-nemotron-3-ultra",
   ],
-  "auto:quality": ["gemini-2-0-pro", "gemini-2-0-flash"],
-  "auto:reasoning": ["gemini-2-0-pro", "gemini-2-0-flash"],
+  "auto:quality": ["gemini-flash-latest", "gemini-flash-lite-latest"],
+  "auto:reasoning": ["gemini-flash-latest", "gemini-flash-lite-latest"],
   "auto:vision": VISION_MODELS,
   "auto:embedding": ["gemini-embedding"],
 } as const satisfies Record<string, readonly ModelAlias[]>;

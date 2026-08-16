@@ -74,9 +74,9 @@ describe("resolveModel", () => {
 
   it("orders auto:balanced from lower to higher expected latency", () => {
     expect(resolveCandidates("auto:balanced")).toEqual([
-      "gemini-2-0-flash",
+      "gemini-flash-lite-latest",
       "groq-llama-70b",
-      "gemini-2-0-flash-lite",
+      "gemini-flash-latest",
       "groq-compound-mini",
       "openrouter-nemotron-3-5-lightning",
       "openrouter-gpt-oss-20b",
@@ -96,13 +96,12 @@ describe("resolveModel", () => {
     ]);
   });
 
-  it("keeps the production vision route on the stable Gemini 2.0 aliases", () => {
+  it("keeps the production vision route on the live Gemini latest aliases", () => {
     const ordered = resolveCandidates("auto:vision");
 
     expect(ordered).toEqual([
-      "gemini-2-0-pro",
-      "gemini-2-0-flash",
-      "gemini-2-0-flash-lite",
+      "gemini-flash-latest",
+      "gemini-flash-lite-latest",
       "groq-llama-4-scout",
       "groq-qwen-3-6-27b",
       "openrouter-gemma-4-31b",
@@ -118,11 +117,11 @@ describe("resolveModel", () => {
     const ordered = resolveCandidates("auto:vision");
 
     expect(ordered.slice(0, 5)).toEqual([
-      "gemini-2-0-pro",
-      "gemini-2-0-flash",
-      "gemini-2-0-flash-lite",
+      "gemini-flash-latest",
+      "gemini-flash-lite-latest",
       "groq-llama-4-scout",
       "groq-qwen-3-6-27b",
+      "openrouter-gemma-4-31b",
     ]);
     expect(ordered).not.toContain("gemini-3-5-flash");
     expect(ordered).not.toContain("gemini-3-1-flash-lite");
@@ -145,7 +144,7 @@ describe("resolveModel", () => {
     try {
       const resolved = resolveModel("auto:vision", "vision");
       expect(resolved[0]?.adapter.id).toBe("google");
-      expect(resolved[0]?.definition.model).toBe("gemini-2.0-flash");
+      expect(resolved[0]?.definition.model).toBe("gemini-flash-latest");
     } finally {
       if (previousGoogle === undefined) {
         delete process.env.GOOGLE_API_KEY;
