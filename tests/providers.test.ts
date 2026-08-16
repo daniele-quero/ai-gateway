@@ -74,9 +74,9 @@ describe("resolveModel", () => {
 
   it("orders auto:balanced from lower to higher expected latency", () => {
     expect(resolveCandidates("auto:balanced")).toEqual([
-      "gemini-2-5-flash",
+      "gemini-2-0-flash",
       "groq-llama-70b",
-      "gemini-2-5-flash-lite",
+      "gemini-2-0-flash-lite",
       "groq-compound-mini",
       "openrouter-nemotron-3-5-lightning",
       "openrouter-gpt-oss-20b",
@@ -96,21 +96,31 @@ describe("resolveModel", () => {
     ]);
   });
 
-  it("includes every vision-capable model in auto:vision", () => {
-    const visionModels = Object.entries(MODEL_REGISTRY)
-      .filter(([, definition]) => definition.capabilities.includes("vision"))
-      .map(([alias]) => alias);
+  it("keeps the production vision route on the stable Gemini 2.0 aliases", () => {
+    const ordered = resolveCandidates("auto:vision");
 
-    expect(new Set(resolveCandidates("auto:vision"))).toEqual(new Set(visionModels));
+    expect(ordered).toEqual([
+      "gemini-2-0-pro",
+      "gemini-2-0-flash",
+      "gemini-2-0-flash-lite",
+      "groq-llama-4-scout",
+      "groq-qwen-3-6-27b",
+      "openrouter-gemma-4-31b",
+      "openrouter-gemma-4-26b-a4b",
+      "openrouter-nemotron-nano-12b-v2-vl",
+      "openrouter-nemotron-3-nano-omni",
+    ]);
+    expect(ordered).not.toContain("gemini-2-5-pro");
+    expect(ordered).not.toContain("gemini-2-5-flash");
   });
 
   it("routes auto:vision with a balanced first three and a speed-oriented fallback order", () => {
     const ordered = resolveCandidates("auto:vision");
 
     expect(ordered.slice(0, 5)).toEqual([
-      "gemini-2-5-pro",
-      "gemini-2-5-flash",
-      "gemini-2-5-flash-lite",
+      "gemini-2-0-pro",
+      "gemini-2-0-flash",
+      "gemini-2-0-flash-lite",
       "groq-llama-4-scout",
       "groq-qwen-3-6-27b",
     ]);
@@ -121,6 +131,38 @@ describe("resolveModel", () => {
   it("excludes the content-safety model from the production routing chain", () => {
     expect(resolveCandidates("auto:vision")).not.toContain("openrouter-nemotron-3-5-content-safety");
     expect(resolveCandidates("auto:balanced")).not.toContain("openrouter-nemotron-3-5-content-safety");
+  });
+
+  it("prefers Gemini for auto:vision when Google credentials are configured", () => {
+    const previousGoogle = process.env.GOOGLE_API_KEY;
+    const previousGroq = process.env.GROQ_API_KEY;
+    const previousOpenRouter = process.env.OPENROUTER_FREE_API_KEY;
+
+    process.env.GOOGLE_API_KEY = "google-test-key";
+    delete process.env.GROQ_API_KEY;
+    delete process.env.OPENROUTER_FREE_API_KEY;
+
+    try {
+      const resolved = resolveModel("auto:vision", "vision");
+      expect(resolved[0]?.adapter.id).toBe("google");
+      expect(resolved[0]?.definition.model).toBe("gemini-2.0-flash");
+    } finally {
+      if (previousGoogle === undefined) {
+        delete process.env.GOOGLE_API_KEY;
+      } else {
+        process.env.GOOGLE_API_KEY = previousGoogle;
+      }
+      if (previousGroq === undefined) {
+        delete process.env.GROQ_API_KEY;
+      } else {
+        process.env.GROQ_API_KEY = previousGroq;
+      }
+      if (previousOpenRouter === undefined) {
+        delete process.env.OPENROUTER_FREE_API_KEY;
+      } else {
+        process.env.OPENROUTER_FREE_API_KEY = previousOpenRouter;
+      }
+    }
   });
 
   it("throws MODEL_NOT_FOUND for unknown model", () => {

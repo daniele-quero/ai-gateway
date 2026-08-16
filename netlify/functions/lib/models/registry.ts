@@ -20,21 +20,40 @@ export const MODEL_REGISTRY = {
   // Google Gemini models used by the gateway. Keep the registry aligned with
   // the IDs that Gemini actually accepts; unsupported 3.x names will trigger
   // 404s upstream.
+  "gemini-2-0-flash": {
+    provider: "google",
+    model: "gemini-2.0-flash",
+    capabilities: ["chat", "streaming", "vision"],
+    defaultMaxOutputTokens: 512,
+  },
+  "gemini-2-0-flash-lite": {
+    provider: "google",
+    model: "gemini-2.0-flash-lite",
+    capabilities: ["chat", "streaming", "vision"],
+    defaultMaxOutputTokens: 512,
+  },
+  "gemini-2-0-pro": {
+    provider: "google",
+    model: "gemini-2.0-flash",
+    capabilities: ["chat", "streaming", "vision"],
+    defaultMaxOutputTokens: 512,
+  },
+  // Backward-compatible aliases kept for older clients using the 2.5 naming.
   "gemini-2-5-flash": {
     provider: "google",
-    model: "gemini-2.5-flash",
+    model: "gemini-2.0-flash",
     capabilities: ["chat", "streaming", "vision"],
     defaultMaxOutputTokens: 512,
   },
   "gemini-2-5-flash-lite": {
     provider: "google",
-    model: "gemini-2.5-flash-lite",
+    model: "gemini-2.0-flash-lite",
     capabilities: ["chat", "streaming", "vision"],
     defaultMaxOutputTokens: 512,
   },
   "gemini-2-5-pro": {
     provider: "google",
-    model: "gemini-2.5-pro",
+    model: "gemini-2.0-flash",
     capabilities: ["chat", "streaming", "vision"],
     defaultMaxOutputTokens: 512,
   },
@@ -211,10 +230,11 @@ export type ModelAlias = keyof typeof MODEL_REGISTRY;
  * aliases; the first available one is used, the rest act as fallbacks.
  */
 const VISION_MODELS = [
-  // First three prioritize the best balance of quality and speed for vision tasks.
-  "gemini-2-5-pro",
-  "gemini-2-5-flash",
-  "gemini-2-5-flash-lite",
+  // Prefer the stable Gemini 2.0 family for production vision tasks; these are
+  // the model IDs Google accepts in the current API surface.
+  "gemini-2-0-pro",
+  "gemini-2-0-flash",
+  "gemini-2-0-flash-lite",
   // Remaining candidates follow a speed-oriented fallback chain: Groq first,
   // then the faster OpenRouter multimodal models, ending with slower alternatives.
   "groq-llama-4-scout",
@@ -226,11 +246,11 @@ const VISION_MODELS = [
 ] as const satisfies ModelAlias[];
 
 export const ROUTES = {
-  "auto:fast": ["groq-llama-70b", "gemini-2-5-flash-lite"],
+  "auto:fast": ["groq-llama-70b", "gemini-2-0-flash-lite"],
   "auto:balanced": [
-    "gemini-2-5-flash",
+    "gemini-2-0-flash",
     "groq-llama-70b",
-    "gemini-2-5-flash-lite",
+    "gemini-2-0-flash-lite",
     "groq-compound-mini",
     "openrouter-nemotron-3-5-lightning",
     "openrouter-gpt-oss-20b",
@@ -248,8 +268,8 @@ export const ROUTES = {
     "openrouter-north-mini-code",
     "openrouter-nemotron-3-ultra",
   ],
-  "auto:quality": ["gemini-2-5-pro", "gemini-2-5-flash"],
-  "auto:reasoning": ["gemini-2-5-pro", "gemini-2-5-flash"],
+  "auto:quality": ["gemini-2-0-pro", "gemini-2-0-flash"],
+  "auto:reasoning": ["gemini-2-0-pro", "gemini-2-0-flash"],
   "auto:vision": VISION_MODELS,
   "auto:embedding": ["gemini-embedding"],
 } as const satisfies Record<string, readonly ModelAlias[]>;
