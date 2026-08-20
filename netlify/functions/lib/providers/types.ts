@@ -32,6 +32,8 @@ export interface ProviderChatResponse {
   provider: string;
   model: string;
   text: string;
+  /** Canonical provider termination reason, when the provider supplies one. */
+  finishReason?: string;
 }
 
 export interface ProviderEmbeddingsRequest {

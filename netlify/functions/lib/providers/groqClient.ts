@@ -36,8 +36,8 @@ export class GroqClient implements ProviderAdapter {
   }
 
   async chat(request: ProviderChatRequest): Promise<ProviderChatResponse> {
-    const text = await openAiChat(this.clientConfig(), request);
-    return { provider: this.id, model: request.model, text };
+    const result = await openAiChat(this.clientConfig(), request);
+    return { provider: this.id, model: request.model, text: result.text, finishReason: result.finishReason };
   }
 
   streamChat(request: ProviderChatRequest): AsyncGenerator<string> {
