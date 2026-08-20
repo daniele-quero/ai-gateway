@@ -1,7 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { TemplateProviderClient } from "../netlify/functions/lib/providers/templateProviderClient.js";
 import { resolveModel } from "../netlify/functions/lib/providerRegistry.js";
-import { MODEL_REGISTRY, resolveCandidates } from "../netlify/functions/lib/models/registry.js";
+import { resolveCandidates } from "../netlify/functions/lib/models/registry.js";
 import { runChat, runChatStream } from "../netlify/functions/lib/chatService.js";
 import { sseResponse, type StreamSource } from "../netlify/functions/lib/sse.js";
 import { isOriginAllowed, corsHeaders } from "../netlify/functions/lib/cors.js";
@@ -170,6 +170,91 @@ describe("resolveModel", () => {
 });
 
 describe("chatService with template provider", () => {
+  it("logs completion diagnostics without prompt or output contents", async () => {
+    const logSpy = vi.spyOn(console, "info").mockImplementation(() => undefined);
+
+    try {
+      const result = await runChat({
+        model: "template-model",
+        messages: [{ role: "user", content: "private prompt" }],
+        maxOutputTokens: 42,
+        capability: "chat",
+      });
+
+      expect(logSpy).toHaveBeenCalledWith(
+        "[ai-gateway] chat diagnostics",
+        expect.objectContaining({
+          model: "provider/model-name",
+          provider: "template",
+          maxOutputTokens: 42,
+          finishReason: null,
+          outputLength: result.text.length,
+          fallbackUsed: false,
+        }),
+      );
+      expect(JSON.stringify(logSpy.mock.calls)).not.toContain("private prompt");
+      expect(JSON.stringify(logSpy.mock.calls)).not.toContain(result.text);
+    } finally {
+      logSpy.mockRestore();
+    }
+  });
+
+  it("returns a diagnostic error when Gemini reaches MAX_TOKENS", async () => {
+    const previousGoogle = process.env.GOOGLE_API_KEY;
+    const previousGroq = process.env.GROQ_API_KEY;
+    const previousOpenRouter = process.env.OPENROUTER_FREE_API_KEY;
+    process.env.GOOGLE_API_KEY = "google-test-key";
+    delete process.env.GROQ_API_KEY;
+    delete process.env.OPENROUTER_FREE_API_KEY;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        new Response(
+          JSON.stringify({
+            candidates: [
+              {
+                content: { parts: [{ text: "```json\n{\"image_text\":\"partial" }] },
+                finishReason: "MAX_TOKENS",
+              },
+            ],
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
+      ),
+    );
+
+    try {
+      await expect(
+        runChat({
+          model: "auto:vision",
+          messages: [{ role: "user", content: "image request" }],
+          maxOutputTokens: 42,
+          capability: "vision",
+        }),
+      ).rejects.toMatchObject({
+        code: "OUTPUT_TRUNCATED",
+        status: 502,
+      });
+    } finally {
+      vi.unstubAllGlobals();
+      if (previousGoogle === undefined) {
+        delete process.env.GOOGLE_API_KEY;
+      } else {
+        process.env.GOOGLE_API_KEY = previousGoogle;
+      }
+      if (previousGroq === undefined) {
+        delete process.env.GROQ_API_KEY;
+      } else {
+        process.env.GROQ_API_KEY = previousGroq;
+      }
+      if (previousOpenRouter === undefined) {
+        delete process.env.OPENROUTER_FREE_API_KEY;
+      } else {
+        process.env.OPENROUTER_FREE_API_KEY = previousOpenRouter;
+      }
+    }
+  });
+
   it("returns a non-streaming response", async () => {
     const result = await runChat({
       model: "template-model",

@@ -81,7 +81,10 @@ function buildPayload(request: ProviderChatRequest): GeminiPayload {
 }
 
 interface GeminiResponse {
-  candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+  candidates?: Array<{
+    content?: { parts?: Array<{ text?: string }> };
+    finishReason?: string;
+  }>;
 }
 
 function extractText(data: GeminiResponse): string {
@@ -131,7 +134,12 @@ export class GeminiClient implements ProviderAdapter {
       throw new GatewayError("UPSTREAM_ERROR", `Provider ${this.id} returned ${response.status}`);
     }
     const data = (await response.json()) as GeminiResponse;
-    return { provider: this.id, model: request.model, text: extractText(data) };
+    return {
+      provider: this.id,
+      model: request.model,
+      text: extractText(data),
+      finishReason: data.candidates?.[0]?.finishReason,
+    };
   }
 
   async *streamChat(request: ProviderChatRequest): AsyncGenerator<string> {

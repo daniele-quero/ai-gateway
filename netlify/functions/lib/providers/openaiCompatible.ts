@@ -55,6 +55,11 @@ export interface OpenAiCompatibleConfig {
   token: string;
 }
 
+export interface OpenAiChatResult {
+  text: string;
+  finishReason?: string;
+}
+
 function buildBody(request: ProviderChatRequest, stream: boolean): Record<string, unknown> {
   const body: Record<string, unknown> = {
     model: request.model,
@@ -73,7 +78,7 @@ function buildBody(request: ProviderChatRequest, stream: boolean): Record<string
 export async function openAiChat(
   config: OpenAiCompatibleConfig,
   request: ProviderChatRequest,
-): Promise<string> {
+): Promise<OpenAiChatResult> {
   const response = await fetch(config.endpoint, {
     method: "POST",
     headers: {
@@ -87,10 +92,17 @@ export async function openAiChat(
     throw new GatewayError("UPSTREAM_ERROR", `Provider ${config.providerId} returned ${response.status}`);
   }
   const data = (await response.json()) as {
-    choices?: Array<{ message?: { content?: string } }>;
+    choices?: Array<{
+      message?: { content?: string };
+      finish_reason?: string;
+    }>;
   };
-  const text = data.choices?.[0]?.message?.content ?? "";
-  return text;
+  const choice = data.choices?.[0];
+  return {
+    text: choice?.message?.content ?? "",
+    // OpenAI-compatible APIs call token-limit termination "length".
+    finishReason: choice?.finish_reason === "length" ? "MAX_TOKENS" : choice?.finish_reason,
+  };
 }
 
 /**

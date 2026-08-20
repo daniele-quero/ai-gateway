@@ -42,17 +42,43 @@ function toProviderRequest(candidate: ResolvedModel, request: ChatServiceRequest
   return providerRequest;
 }
 
+function logChatDiagnostics(
+  candidate: ResolvedModel,
+  maxOutputTokens: number,
+  response: ProviderChatResponse,
+  fallbackUsed: boolean,
+): void {
+  console.info("[ai-gateway] chat diagnostics", {
+    model: candidate.definition.model,
+    provider: candidate.adapter.id,
+    maxOutputTokens,
+    finishReason: response.finishReason ?? null,
+    outputLength: response.text.length,
+    fallbackUsed,
+  });
+}
+
 /**
  * Non-streaming chat with sequential fallback across candidates.
  */
 export async function runChat(request: ChatServiceRequest): Promise<ProviderChatResponse> {
   const candidates = resolveModel(request.model, request.capability);
   let lastError: unknown;
-  for (const candidate of candidates) {
+  for (const [candidateIndex, candidate] of candidates.entries()) {
+    const maxOutputTokens = request.maxOutputTokens ?? candidate.definition.defaultMaxOutputTokens;
     try {
-      return await candidate.adapter.chat(toProviderRequest(candidate, request));
+      const response = await candidate.adapter.chat(toProviderRequest(candidate, request));
+      logChatDiagnostics(candidate, maxOutputTokens, response, candidateIndex > 0);
+      if (response.finishReason === "MAX_TOKENS") {
+        throw new GatewayError("OUTPUT_TRUNCATED", "Provider output was truncated at maxOutputTokens");
+      }
+      // Keep provider termination metadata internal; the public response remains unchanged.
+      return { provider: response.provider, model: response.model, text: response.text };
     } catch (err) {
       lastError = err;
+      if (err instanceof GatewayError && err.code === "OUTPUT_TRUNCATED") {
+        throw err;
+      }
     }
   }
   throw lastError instanceof GatewayError
